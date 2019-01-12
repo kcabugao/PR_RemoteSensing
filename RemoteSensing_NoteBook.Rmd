@@ -1,13 +1,13 @@
 ---
-title: "Puerto Rico Remote Sensing - Belowground "
+title: 'Puerto Rico Remote Sensing - Belowground '
 output:
+  pdf_document: default
   html_document:
-    df_print: paged
     code_folding: hide
+    df_print: paged
 ---
 # Resin P Analysis
 Resin P results from ICA, EVR, EVV, SB2 and EV1 from all previous trips to Puerto Rico.
-
 
 ```{r Resin P}
 library(tidyverse)
@@ -111,3 +111,19 @@ TukeyHSD(soilp.sitespecies.aov)
 ```
 
 When tree species is taken into account, site is still the main driver of organic phosphorus availability (p-value < 0.001) though tree species may play a slight role (p-value < 0.1). 
+
+# Root phosphatase activity
+```{r SB2 & EV1 root phosphatase}
+pase <- read.csv("~/Documents/LabStats/PR2_RemoteSensing/RemoteSensing_Pase.csv", header = TRUE, stringsAsFactors = TRUE, na.strings = "NA")
+```
+
+## Root phosphatase by tree species and site
+```{r}
+ggplot(data = pase, aes(x = reorder(TreeSpecies, Pase, FUN = median), y = Pase, fill = TreeSpecies)) + geom_boxplot() + geom_point(aes(x = TreeSpecies, y = Pase, colour = TreeSpecies)) + facet_grid(. ~ Site) + theme_bw() + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + xlab("Tree Species") + ylab(expression(Root~phosphatase~(mu~moles~pNP~g^{-1}))) + theme(legend.position = c(0.1,0.8))
+```
+
+# Root phosphatase by site
+```{r}
+ggplot(data = pase, aes(x = Site, y = Pase)) + geom_boxplot() + geom_point(aes(x = Site, y = Pase, colour = TreeSpecies)) + theme_bw() + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + xlab("Tree Species") + ylab(expression(Root~phosphatase~(mu~moles~pNP~g^{-1}))) + theme(legend.position = c(0.9,0.75))
+```
+
