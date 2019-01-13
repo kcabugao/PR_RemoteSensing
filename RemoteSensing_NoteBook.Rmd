@@ -66,7 +66,6 @@ ggplot(data = resinp, aes(x = Site, y = ResinP, colour = TreeSpecies), position_
   legend.position = c(0.1,0.8)) + ylab((expression(Resin~P~(mu~g~P~g^{-1}))))
 ```
 
-
 # Organic Phosphorus
 Organic phosphorus results from SB2 and EV1 from February 2018 Puerto Rico sampling trip. 
 
@@ -157,14 +156,41 @@ pase <- read.csv("~/Documents/LabStats/PR2_RemoteSensing/RemoteSensing_Pase.csv"
 ```
 
 ## Root phosphatase by site
-```{r}
+```{r Root pase x site}
+pase %>%
+  group_by(Site) %>% 
+  summarise(
+     n = n(),
+    mean = mean(Pase, na.rm = TRUE),
+    sd_total = sd(Pase, na.rm = TRUE),
+    se_total = (sd(Pase, na.rm = TRUE)/(sqrt(n()))))
+```
+
+```{r Root pase x site graph}
 ggplot(data = pase, aes(x = Site, y = Pase)) + geom_boxplot() + geom_point(aes(x = Site, y = Pase, colour = TreeSpecies)) + theme_bw() + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + xlab("Tree Species") + ylab(expression(Root~phosphatase~(mu~moles~pNP~g^{-1}))) + theme(legend.position = c(0.9,0.75))
 ```
 
-## Root phosphatase by tree species and site
-```{r}
+## Root phosphatase by site & tree species
+```{r Root pase x site x tree species}
+pase %>%
+  group_by(Site, TreeSpecies) %>% 
+  summarise(
+     n = n(),
+    mean = mean(Pase, na.rm = TRUE),
+    sd_total = sd(Pase, na.rm = TRUE),
+    se_total = (sd(Pase, na.rm = TRUE)/(sqrt(n()))))
+```
+
+```{r Root pase x site x tree species plot}
 ggplot(data = pase, aes(x = reorder(TreeSpecies, Pase, FUN = median), y = Pase, fill = TreeSpecies)) + geom_boxplot() + geom_point(aes(x = TreeSpecies, y = Pase, colour = TreeSpecies)) + facet_grid(. ~ Site) + theme_bw() + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + xlab("Tree Species") + ylab(expression(Root~phosphatase~(mu~moles~pNP~g^{-1}))) + theme(legend.position = c(0.1,0.8))
 ```
 
+## Root phoosphatase ANOVA
+```{r Root pase ANOVA}
+rootpase.aov <- aov(Pase ~ Site + TreeSpecies + Site*TreeSpecies, data = pase)
+summary(rootpase.aov)  
 
+TukeyHSD(rootpase.aov)
+```
 
+Root phosphatase is influenced by both Site and Tree Species (p-value < 0.001), though independently. In genenral, PREMON differs from CECSCH and INGLAU across both sites (p-value <0.05). As expected, PREMON-INGLAU differences are greatest when at different sites (p-value < 0.01) than when PREMON nad INGLAU are at the same site (p-value <0.05). 
