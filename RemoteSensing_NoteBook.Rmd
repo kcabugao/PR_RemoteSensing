@@ -1,32 +1,71 @@
 ---
 title: 'Puerto Rico Remote Sensing - Belowground '
 output:
-  pdf_document: default
   html_document:
     code_folding: hide
     df_print: paged
+  pdf_document: default
 ---
-# Resin P Analysis
-Resin P results from ICA, EVR, EVV, SB2 and EV1 from all previous trips to Puerto Rico.
-
-```{r Resin P}
+# Resin P Analysis - SB2 & EV1
+Pre-hurricane analysis of resin P on sites SB2 and EV1. Collected and processed March 2017.
+```{r Dataset}
 library(tidyverse)
-allresin <- read.csv("~/Documents/LabStats/PR2_RemoteSensing/ResinP_5Sites.csv")
-
-allresin %>%
-  group_by(Site) %>% 
-  summarise(mean = mean(ugP.L))
-
-allresin$Site <- reorder(allresin$Site, allresin$ugP.L)
-ggplot(data = allresin, aes(x = Site, y = ugP.L)) + geom_boxplot() + theme_bw(base_size = 20) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + theme(axis.title.x = element_blank()) + ylab((expression(Resin~~P~(mu~g~P~L^{-1}))))
-
-resin.aov <- aov(ugP.L ~ Site, data = allresin)
-summary(resin.aov)
-
-TukeyHSD(resin.aov)
+resinp <- read.csv("~/Documents/LabStats/PR2_RemoteSensing/ResinP.csv", header = TRUE, stringsAsFactors = TRUE, na.strings = "NA") # units = ugP/g soil dry weight
 ```
 
-Resin P differs across experimental sites (p-value < 0.001) with Rio Icacos (ICA) containing the least available amounts of orthophosphate (mean = 19.66 ugP/L) and Sabana 2 (SB2) with the highest (mean = 98.00 ugP/L). Tukey HSD results indicate that the differences across sites were most significant (p-value < 0.001) between SB2-ICA, SB2-EV1, and SB2-El Verde Ridge (EVR). 
+## Resin P Summary Stats
+```{r}
+# resin p mean, sd, and se by site
+resinp %>% 
+  group_by(Site) %>% 
+  summarise(
+     n = n(),
+    mean = mean(ResinP, na.rm = TRUE),
+    sd_total = sd(ResinP, na.rm = TRUE),
+    se_total = (sd(ResinP, na.rm = TRUE)/(sqrt(n()))))
+
+# resin p mean, sd, and se by site x tree species
+resinp %>% 
+  group_by(Site, TreeSpecies) %>% 
+  summarise(
+     n = n(),
+    mean = mean(ResinP, na.rm = TRUE),
+    sd_total = sd(ResinP, na.rm = TRUE),
+    se_total = (sd(ResinP, na.rm = TRUE)/(sqrt(n()))))
+```
+
+## Resin P ANOVA
+```{r}
+resinp.aov <- aov(ResinP ~ Site + TreeSpecies + Site*TreeSpecies, data = resinp)
+summary(resinp.aov)
+
+TukeyHSD(resinp.aov)
+```
+
+Resin P differed between EV1 and SB2 (p-value < 0.05), driven only by site. Tukey HSD shows that there were no significant differences between tree species within and among sites. 
+
+## Resin P Graphs
+### Resin P by Site
+```{r}
+# vector for tick marks
+ticks <- seq(0, 2, by = 0.20)
+
+ggplot(data = resinp, aes(x = Site, y = ResinP)) + geom_boxplot() + geom_point(aes(x = Site, y = ResinP, colour = TreeSpecies), position = position_dodge(0.1)) + scale_y_continuous(limits = c(0,2), breaks = ticks) + theme_bw() + theme(
+  panel.grid.major = element_blank(), 
+  panel.grid.minor = element_blank(),
+  axis.title.x = element_blank(),
+  legend.position = c(0.1,0.8)) + ylab((expression(Resin~P~(mu~g~P~g^{-1}))))
+```
+
+### Resin P by Site & Tree Species
+```{r}
+ggplot(data = resinp, aes(x = Site, y = ResinP, colour = TreeSpecies), position_dodge(position_dodge(0.5))) + geom_boxplot() + geom_point(aes(x = Site, y = ResinP, colour = TreeSpecies), position = position_dodge(0.5)) + scale_y_continuous(limits = c(0,2), breaks = ticks) + theme_bw() + theme(
+  panel.grid.major = element_blank(), 
+  panel.grid.minor = element_blank(),
+  axis.title.x = element_blank(),
+  legend.position = c(0.1,0.8)) + ylab((expression(Resin~P~(mu~g~P~g^{-1}))))
+```
+
 
 # Organic Phosphorus
 Organic phosphorus results from SB2 and EV1 from February 2018 Puerto Rico sampling trip. 
@@ -117,13 +156,15 @@ When tree species is taken into account, site is still the main driver of organi
 pase <- read.csv("~/Documents/LabStats/PR2_RemoteSensing/RemoteSensing_Pase.csv", header = TRUE, stringsAsFactors = TRUE, na.strings = "NA")
 ```
 
+## Root phosphatase by site
+```{r}
+ggplot(data = pase, aes(x = Site, y = Pase)) + geom_boxplot() + geom_point(aes(x = Site, y = Pase, colour = TreeSpecies)) + theme_bw() + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + xlab("Tree Species") + ylab(expression(Root~phosphatase~(mu~moles~pNP~g^{-1}))) + theme(legend.position = c(0.9,0.75))
+```
+
 ## Root phosphatase by tree species and site
 ```{r}
 ggplot(data = pase, aes(x = reorder(TreeSpecies, Pase, FUN = median), y = Pase, fill = TreeSpecies)) + geom_boxplot() + geom_point(aes(x = TreeSpecies, y = Pase, colour = TreeSpecies)) + facet_grid(. ~ Site) + theme_bw() + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + xlab("Tree Species") + ylab(expression(Root~phosphatase~(mu~moles~pNP~g^{-1}))) + theme(legend.position = c(0.1,0.8))
 ```
 
-# Root phosphatase by site
-```{r}
-ggplot(data = pase, aes(x = Site, y = Pase)) + geom_boxplot() + geom_point(aes(x = Site, y = Pase, colour = TreeSpecies)) + theme_bw() + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + xlab("Tree Species") + ylab(expression(Root~phosphatase~(mu~moles~pNP~g^{-1}))) + theme(legend.position = c(0.9,0.75))
-```
+
 
