@@ -4,13 +4,17 @@ output:
   html_document:
     code_folding: hide
     df_print: paged
-  pdf_document: default
+    toc: true
+    toc_float: true
+  
 ---
 # Resin P Analysis - SB2 & EV1
 Pre-hurricane analysis of resin P on sites SB2 and EV1. Collected and processed March 2017.
+Note: Need the Feb 2018 samples
+
 ```{r Dataset}
 library(tidyverse)
-resinp <- read.csv("~/Documents/LabStats/PR2_RemoteSensing/ResinP.csv", header = TRUE, stringsAsFactors = TRUE, na.strings = "NA") # units = ugP/g soil dry weight
+resinp <- read.csv("~/Documents/LabStats/PR2_RemoteSensing/ResinP_2017.csv", header = TRUE, stringsAsFactors = TRUE, na.strings = "NA") # units = ugP/g soil dry weight
 ```
 
 ## Resin P Summary Stats
@@ -70,52 +74,51 @@ ggplot(data = resinp, aes(x = Site, y = ResinP, colour = TreeSpecies), position_
 Organic phosphorus results from SB2 and EV1 from February 2018 Puerto Rico sampling trip. 
 
 ```{r Organic phosphorus}
-
-soilp <- read.csv("~/Documents/LabStats/PR2_RemoteSensing/SoilPhosphorus.csv", header = TRUE, na.strings = "NA", stringsAsFactors = TRUE)
+organicp <- read.csv("~/Documents/LabStats/PR2_RemoteSensing/RemoteSensing_OrganicP.csv", header = TRUE, na.strings = "NA", stringsAsFactors = TRUE)
 ```
 
 ## Acid organic phosphorus
 ```{r Acid organic phosphorus}
-ggplot(data = soilp, aes(x = Site, y = Acid_OP)) + geom_boxplot() + geom_point(aes(x = Site, y = Acid_OP, colour = TreeSpecies), position = position_dodge(0.1), size = 3.0) + theme_bw() + theme(
+ggplot(data = organicp, aes(x = Site, y = Acid)) + geom_boxplot() + geom_point(aes(x = Site, y = Acid, colour = TreeSpecies), position = position_dodge(0.1), size = 3.0) + theme_bw() + theme(
   panel.grid.major = element_blank(), 
   panel.grid.minor = element_blank(),
   axis.title.x = element_blank(),
-  legend.position = c(0.1,0.8)) + ylab((expression(Acid~Organic~P~(mg~P~L^{-1}))))
+  legend.position = c(0.1,0.8)) + ylab((expression(Acid~Organic~P~mg~P~L^{-1})))
 ```
 
 ## Alkaline organic phosphorus
 ```{r Alkaline organic phosphorus}
-ggplot(data = soilp, aes(x = Site, y = Alkaline_OP)) + geom_boxplot() + geom_point(aes(x = Site, y = Alkaline_OP, colour = TreeSpecies), position = position_dodge(0.1), size = 3.0) + theme_bw() + theme(
+ggplot(data = organicp, aes(x = Site, y = Alkaline)) + geom_boxplot() + geom_point(aes(x = Site, y = Alkaline, colour = TreeSpecies), position = position_dodge(0.1), size = 3.0) + theme_bw() + theme(
   panel.grid.major = element_blank(), 
   panel.grid.minor = element_blank(),
   axis.title.x = element_blank(),
-  legend.position = c(0.1,0.8)) + ylab((expression(Alkaline~Organic~P~(mg~P~L^{-1}))))
+  legend.position = c(0.1,0.8)) + ylab((expression(Alkaline~Organic~P~mg~P~L^{-1})))
 ```
 
 ## Total organic phosphorus
 ```{r Total organic phosphorus}
-ggplot(data = soilp, aes(x = Site, y = Total_OP)) + geom_boxplot() + geom_point(aes(x = Site, y = Total_OP, colour = TreeSpecies), position = position_dodge(0.1), size = 3.0) + theme_bw() + theme(
+ggplot(data = organicp, aes(x = Site, y = Total)) + geom_boxplot() + geom_point(aes(x = Site, y = Total, colour = TreeSpecies), position = position_dodge(0.1), size = 3.0) + theme_bw() + theme(
   panel.grid.major = element_blank(), 
   panel.grid.minor = element_blank(),
   axis.title.x = element_blank(),
-  legend.position = c(0.1,0.8)) + ylab((expression(Total~Organic~P~(mg~P~L^{-1}))))
+  legend.position = c(0.1,0.8)) + ylab((expression(Total~Organic~P~mg~P~L^{-1})))
 
-soilp.siteaov <- aov(Total_OP ~ Site, data = soilp)
-summary(soilp.siteaov)
+organicp.siteaov <- aov(Total ~ Site, data = organicp)
+summary(organicp.siteaov)
 ```
 
 ## Average organic phosphorus at each site
 ```{r Organic phosphorus by site}
-soilp.sum <- soilp %>% 
+organicp.sum <- organicp %>% 
   group_by(Site) %>% 
   summarise(
     n = n(),
-    mean_total = mean(Total_OP, na.rm = TRUE),
-    sd_total = sd(Total_OP, na.rm = TRUE),
-    se_total = (sd(Total_OP, na.rm = TRUE)/(sqrt(n()))))
-View(soilp.sum)
+    mean_total = mean(Total, na.rm = TRUE),
+    sd_total = sd(Total, na.rm = TRUE),
+    se_total = (sd(Total, na.rm = TRUE)/(sqrt(n()))))
+View(organicp.sum)
 
-ggplot(data = soilp.sum, aes(x = Site, y = mean_total)) + geom_bar(stat = "identity", colour = "black") + geom_errorbar(aes(ymax=mean_total+sd_total, ymin=mean_total-sd_total), width = 0.2, size = 0.3) + theme_bw() + theme(
+ggplot(data = organicp.sum, aes(x = Site, y = mean_total)) + geom_bar(stat = "identity", colour = "black") + geom_errorbar(aes(ymax=mean_total+sd_total, ymin=mean_total-sd_total), width = 0.2, size = 0.3) + theme_bw() + theme(
   panel.grid.major = element_blank(), 
   panel.grid.minor = element_blank(),
   axis.title.x = element_blank(),
@@ -127,25 +130,25 @@ Total organic phosphorus is the sum of acid and alkaline extracted phosphorus. A
 
 ## Organic phosphorus by site and tree species
 ```{r Organic phosphorus by site and tree species}
-soilp.sum2 <- soilp %>% 
+organicp.sum2 <- organicp %>% 
   group_by(Site, TreeSpecies) %>% 
   summarise(
     n = n(),
-    mean_total = mean(Total_OP, na.rm = TRUE),
-    sd_total = sd(Total_OP, na.rm = TRUE),
-    se_total = (sd(Total_OP, na.rm = TRUE)/(sqrt(n()))))
-View(soilp.sum2)
+    mean_total = mean(Total, na.rm = TRUE),
+    sd_total = sd(Total, na.rm = TRUE),
+    se_total = (sd(Total, na.rm = TRUE)/(sqrt(n()))))
+View(organicp.sum2)
 
-ggplot(data = soilp.sum2, aes(x = Site, y = mean_total, colour = TreeSpecies)) + geom_point(position = position_dodge(0.5)) + geom_errorbar(aes(ymax=mean_total+se_total, ymin=mean_total-se_total), position = position_dodge(0.5)) + theme_bw() + theme(
+ggplot(data = organicp.sum2, aes(x = Site, y = mean_total, colour = TreeSpecies)) + geom_point(position = position_dodge(0.5)) + geom_errorbar(aes(ymax=mean_total+se_total, ymin=mean_total-se_total), position = position_dodge(0.5)) + theme_bw() + theme(
   panel.grid.major = element_blank(), 
   panel.grid.minor = element_blank(),
   axis.title.x = element_blank(),
   legend.position = c(0.1,0.8)) + ylab((expression(Mean~Organic~P~(mg~P~L^{-1})))) 
 
-soilp.sitespecies.aov <- aov(Total_OP ~ Site * TreeSpecies, data = soilp)
-summary(soilp.sitespecies.aov)
+organicp.sitespecies.aov <- aov(Total ~ Site * TreeSpecies, data = organicp)
+summary(organicp.sitespecies.aov)
 
-TukeyHSD(soilp.sitespecies.aov)
+TukeyHSD(organicp.sitespecies.aov)
 ```
 
 When tree species is taken into account, site is still the main driver of organic phosphorus availability (p-value < 0.001) though tree species may play a slight role (p-value < 0.1). 
@@ -194,3 +197,74 @@ TukeyHSD(rootpase.aov)
 ```
 
 Root phosphatase is influenced by both Site and Tree Species (p-value < 0.001), though independently. In genenral, PREMON differs from CECSCH and INGLAU across both sites (p-value <0.05). As expected, PREMON-INGLAU differences are greatest when at different sites (p-value < 0.01) than when PREMON nad INGLAU are at the same site (p-value <0.05). 
+
+# Root phosphatase and soil phosphorus
+```{r Belowground data 2017}
+bg.2017 <- read.csv("~/Documents/LabStats/PR2_RemoteSensing/PR2_OrganicResinPase.csv", header = TRUE, stringsAsFactors = TRUE, na.strings = "NA")
+View(bg.2017)
+```
+
+## Barplots
+```{r Site}
+resinp.orgp.sum2 <- bg.2017 %>% 
+  group_by(Site) %>% 
+  summarise(
+    n = n(),
+    resin_mean = mean(ResinP, na.rm = TRUE),
+    resin_sd = sd(ResinP, na.rm = TRUE),
+    resin_se = (sd(ResinP, na.rm = TRUE)/(sqrt(n()))),
+    orgP_mean = mean(Total_OrganicP, na.rm = TRUE),
+    orgP_sd = sd(Total_OrganicP, na.rm = TRUE),
+    orgP_se = (sd(Total_OrganicP, na.rm = TRUE)/(sqrt(n()))),
+    pase_mean = mean(Phosphatase, na.rm = TRUE),
+    pase_sd = sd(Phosphatase, na.rm = TRUE),
+    pase_se = (sd(Phosphatase, na.rm = TRUE)/(sqrt(n()))))
+View(resinp.orgp.sum2)
+```
+
+### Resin P 
+```{r}
+ggplot(data = resinp.orgp.sum2, aes(x = Site, y = resin_mean)) + geom_bar(stat = "identity", colour = "black") + geom_errorbar(aes(ymax=resin_mean+resin_se, ymin=resin_mean-resin_se), width = 0.2, size = 0.3) + theme_bw() + theme(
+  panel.grid.major = element_blank(), 
+  panel.grid.minor = element_blank(),
+  axis.title.x = element_blank()) + ylab((expression(Mean~Resin~P~(mu~g~P~g^{-1})))) 
+```
+
+### Organic P
+```{r}
+ggplot(data = resinp.orgp.sum2, aes(x = Site, y = orgP_mean)) + geom_bar(stat = "identity", colour = "black") + geom_errorbar(aes(ymax=orgP_mean+orgP_se, ymin=orgP_mean-orgP_se), width = 0.2, size = 0.3) + theme_bw() + theme(
+  panel.grid.major = element_blank(), 
+  panel.grid.minor = element_blank(),
+  axis.title.x = element_blank()) + ylab((expression(Mean~Organic~P~(m~g~P~L^{-1}))))
+```
+
+### Root phosphatase
+```{r}
+ggplot(data = resinp.orgp.sum2, aes(x = Site, y = pase_mean)) + geom_bar(stat = "identity", colour = "black") + geom_errorbar(aes(ymax=pase_mean+pase_se, ymin=pase_mean-pase_se), width = 0.2, size = 0.3)  + theme(
+  panel.grid.major = element_blank(), 
+  panel.grid.minor = element_blank(),
+  axis.title.x = element_blank()) + ylab((expression(Mean~Root~Phosphatase~(mu~moles~P~g^{-1}))))
+```
+
+## Scatterplots
+
+### Resin P x Organic P
+```{r Resin P x Organic P}
+ggplot(data =  bg.2017, aes(x = Total_OrganicP, y = ResinP, colour = Tree.Species, shape = Site)) + geom_point(size = 5.0) + theme_bw() + theme(
+  panel.grid.major = element_blank(), 
+  panel.grid.minor = element_blank()) + ylab((expression(Resin~P~({mu}~g~P~g^{-1})))) +  xlab((expression(Organic~P~mg~P~L^{-1})))
+```
+
+### Root phosphatase x Resin P
+```{r Root pase x resin P}
+ggplot(data =  bg.2017, aes(x = ResinP, y = Phosphatase, colour = Tree.Species, shape = Site)) + geom_point(size = 5.0) + theme_bw() + theme(
+  panel.grid.major = element_blank(), 
+  panel.grid.minor = element_blank()) + ylab((expression(Root~Phosphatase~({mu}~moles~P~g^{-1})))) +  xlab((expression(Resin~P~mu~g~P~g^{-1})))
+```
+
+### Root phosphatase x Organic P
+```{r Root pase x organic P}
+ggplot(data =  bg.2017, aes(x = Total_OrganicP, y = Phosphatase, colour = Tree.Species, shape = Site)) + geom_point(size = 5.0) + theme_bw() + theme(
+  panel.grid.major = element_blank(), 
+  panel.grid.minor = element_blank()) + ylab((expression(Root~Phosphatase~({mu}~moles~P~g^{-1})))) +  xlab((expression(Organic~P~m~g~P~L^{-1})))
+```
