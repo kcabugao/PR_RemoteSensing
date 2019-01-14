@@ -8,9 +8,8 @@ output:
     toc_float: true
   
 ---
-# Resin P Analysis - SB2 & EV1
+# Resin P Analysis
 Pre-hurricane analysis of resin P on sites SB2 and EV1. Collected and processed March 2017.
-Note: Need the Feb 2018 samples
 
 ```{r Dataset}
 library(tidyverse)
@@ -18,40 +17,19 @@ resinp <- read.csv("~/Documents/LabStats/PR2_RemoteSensing/ResinP_2017.csv", hea
 ```
 
 ## Resin P Summary Stats
-```{r}
+
+### Resin P at SB2 and EV1
+```{r Resin P x Site}
 # resin p mean, sd, and se by site
 resinp %>% 
   group_by(Site) %>% 
   summarise(
      n = n(),
     mean = mean(ResinP, na.rm = TRUE),
-    sd_total = sd(ResinP, na.rm = TRUE),
-    se_total = (sd(ResinP, na.rm = TRUE)/(sqrt(n()))))
+    sd = sd(ResinP, na.rm = TRUE),
+    se = (sd(ResinP, na.rm = TRUE)/(sqrt(n()))))
 
-# resin p mean, sd, and se by site x tree species
-resinp %>% 
-  group_by(Site, TreeSpecies) %>% 
-  summarise(
-     n = n(),
-    mean = mean(ResinP, na.rm = TRUE),
-    sd_total = sd(ResinP, na.rm = TRUE),
-    se_total = (sd(ResinP, na.rm = TRUE)/(sqrt(n()))))
-```
-
-## Resin P ANOVA
-```{r}
-resinp.aov <- aov(ResinP ~ Site + TreeSpecies + Site*TreeSpecies, data = resinp)
-summary(resinp.aov)
-
-TukeyHSD(resinp.aov)
-```
-
-Resin P differed between EV1 and SB2 (p-value < 0.05), driven only by site. Tukey HSD shows that there were no significant differences between tree species within and among sites. 
-
-## Resin P Graphs
-### Resin P by Site
-```{r}
-# vector for tick marks
+# graph
 ticks <- seq(0, 2, by = 0.20)
 
 ggplot(data = resinp, aes(x = Site, y = ResinP)) + geom_boxplot() + geom_point(aes(x = Site, y = ResinP, colour = TreeSpecies), position = position_dodge(0.1)) + scale_y_continuous(limits = c(0,2), breaks = ticks) + theme_bw() + theme(
@@ -61,8 +39,18 @@ ggplot(data = resinp, aes(x = Site, y = ResinP)) + geom_boxplot() + geom_point(a
   legend.position = c(0.1,0.8)) + ylab((expression(Resin~P~(mu~g~P~g^{-1}))))
 ```
 
-### Resin P by Site & Tree Species
-```{r}
+### Resin P near tree species' at SB2 and EV1
+```{r Resin P x Site, Species}
+# resin p mean, sd, and se by site x tree species
+resinp %>% 
+  group_by(Site, TreeSpecies) %>% 
+  summarise(
+     n = n(),
+    mean = mean(ResinP, na.rm = TRUE),
+    sd_total = sd(ResinP, na.rm = TRUE),
+    se_total = (sd(ResinP, na.rm = TRUE)/(sqrt(n()))))
+
+# graph
 ggplot(data = resinp, aes(x = Site, y = ResinP, colour = TreeSpecies), position_dodge(position_dodge(0.5))) + geom_boxplot() + geom_point(aes(x = Site, y = ResinP, colour = TreeSpecies), position = position_dodge(0.5)) + scale_y_continuous(limits = c(0,2), breaks = ticks) + theme_bw() + theme(
   panel.grid.major = element_blank(), 
   panel.grid.minor = element_blank(),
@@ -70,15 +58,27 @@ ggplot(data = resinp, aes(x = Site, y = ResinP, colour = TreeSpecies), position_
   legend.position = c(0.1,0.8)) + ylab((expression(Resin~P~(mu~g~P~g^{-1}))))
 ```
 
-# Organic Phosphorus
-Organic phosphorus results from SB2 and EV1 from February 2018 Puerto Rico sampling trip. 
+Resin P is highest at SB2 (0.874 +/- 0.758) relative to EV1 (0.139 +/- 0.217), consistent with the highest resin P averages near CALCAL and PREMON trees in SB2. When comparing the same tree species across the two sites, resin p values near trees at SB2 are consistently higher. 
 
-```{r Organic phosphorus}
+## Resin P ANOVA
+```{r ANOVA}
+resinp.aov <- aov(ResinP ~ Site + TreeSpecies + Site*TreeSpecies, data = resinp)
+summary(resinp.aov)
+
+TukeyHSD(resinp.aov)
+```
+
+As expected, resin P differed significantly between EV1 and SB2 (p-value < 0.05), driven only by site. Tukey HSD shows that there were no significant differences between tree species within and among sites.
+
+# Organic Phosphorus
+Organic phosphorus results from SB2 and EV1 from March 2017 Puerto Rico sampling trip. 
+
+```{r Organic phosphorus data}
 organicp <- read.csv("~/Documents/LabStats/PR2_RemoteSensing/RemoteSensing_OrganicP.csv", header = TRUE, na.strings = "NA", stringsAsFactors = TRUE)
 ```
 
 ## Acid organic phosphorus
-```{r Acid organic phosphorus}
+```{r Acid OP Plot}
 ggplot(data = organicp, aes(x = Site, y = Acid)) + geom_boxplot() + geom_point(aes(x = Site, y = Acid, colour = TreeSpecies), position = position_dodge(0.1), size = 3.0) + theme_bw() + theme(
   panel.grid.major = element_blank(), 
   panel.grid.minor = element_blank(),
@@ -87,7 +87,7 @@ ggplot(data = organicp, aes(x = Site, y = Acid)) + geom_boxplot() + geom_point(a
 ```
 
 ## Alkaline organic phosphorus
-```{r Alkaline organic phosphorus}
+```{r Alkaline OP Plot}
 ggplot(data = organicp, aes(x = Site, y = Alkaline)) + geom_boxplot() + geom_point(aes(x = Site, y = Alkaline, colour = TreeSpecies), position = position_dodge(0.1), size = 3.0) + theme_bw() + theme(
   panel.grid.major = element_blank(), 
   panel.grid.minor = element_blank(),
@@ -96,7 +96,7 @@ ggplot(data = organicp, aes(x = Site, y = Alkaline)) + geom_boxplot() + geom_poi
 ```
 
 ## Total organic phosphorus
-```{r Total organic phosphorus}
+```{r Total OP Plot}
 ggplot(data = organicp, aes(x = Site, y = Total)) + geom_boxplot() + geom_point(aes(x = Site, y = Total, colour = TreeSpecies), position = position_dodge(0.1), size = 3.0) + theme_bw() + theme(
   panel.grid.major = element_blank(), 
   panel.grid.minor = element_blank(),
@@ -106,9 +106,10 @@ ggplot(data = organicp, aes(x = Site, y = Total)) + geom_boxplot() + geom_point(
 organicp.siteaov <- aov(Total ~ Site, data = organicp)
 summary(organicp.siteaov)
 ```
+Total organic phosphorus is the sum of acid and alkaline extracted phosphorus. Acid extracted organic phosphorus comprised the majority of the total organic phosphorus at both EV1 and SB2, with significantly (p-value < 0.001) higher amounts of organic P at SB2 (mean = 7.85 mgP/L) relative to EV1 (mean = 4.98 mgP/L). 
 
 ## Average organic phosphorus at each site
-```{r Organic phosphorus by site}
+```{r Organic phosphorus x site}
 organicp.sum <- organicp %>% 
   group_by(Site) %>% 
   summarise(
@@ -126,10 +127,8 @@ ggplot(data = organicp.sum, aes(x = Site, y = mean_total)) + geom_bar(stat = "id
 
 ```
 
-Total organic phosphorus is the sum of acid and alkaline extracted phosphorus. Acid extracted organic phosphorus comprised the majority of the total organic phosphorus at both EV1 and SB2, with significantly (p-value < 0.001) higher amounts of organic P at SB2 (mean = 7.85 mgP/L) relative to EV1 (mean = 4.98 mgP/L). 
-
 ## Organic phosphorus by site and tree species
-```{r Organic phosphorus by site and tree species}
+```{r Organic phosphorus x site and tree species}
 organicp.sum2 <- organicp %>% 
   group_by(Site, TreeSpecies) %>% 
   summarise(
@@ -154,7 +153,7 @@ TukeyHSD(organicp.sitespecies.aov)
 When tree species is taken into account, site is still the main driver of organic phosphorus availability (p-value < 0.001) though tree species may play a slight role (p-value < 0.1). 
 
 # Root phosphatase activity
-```{r SB2 & EV1 root phosphatase}
+```{r Root phosphatase data}
 pase <- read.csv("~/Documents/LabStats/PR2_RemoteSensing/RemoteSensing_Pase.csv", header = TRUE, stringsAsFactors = TRUE, na.strings = "NA")
 ```
 
@@ -167,14 +166,13 @@ pase %>%
     mean = mean(Pase, na.rm = TRUE),
     sd_total = sd(Pase, na.rm = TRUE),
     se_total = (sd(Pase, na.rm = TRUE)/(sqrt(n()))))
-```
 
-```{r Root pase x site graph}
+# graph
 ggplot(data = pase, aes(x = Site, y = Pase)) + geom_boxplot() + geom_point(aes(x = Site, y = Pase, colour = TreeSpecies)) + theme_bw() + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + xlab("Tree Species") + ylab(expression(Root~phosphatase~(mu~moles~pNP~g^{-1}))) + theme(legend.position = c(0.9,0.75))
 ```
 
 ## Root phosphatase by site & tree species
-```{r Root pase x site x tree species}
+```{r Root pase x site and tree species}
 pase %>%
   group_by(Site, TreeSpecies) %>% 
   summarise(
@@ -182,9 +180,8 @@ pase %>%
     mean = mean(Pase, na.rm = TRUE),
     sd_total = sd(Pase, na.rm = TRUE),
     se_total = (sd(Pase, na.rm = TRUE)/(sqrt(n()))))
-```
 
-```{r Root pase x site x tree species plot}
+# graph
 ggplot(data = pase, aes(x = reorder(TreeSpecies, Pase, FUN = median), y = Pase, fill = TreeSpecies)) + geom_boxplot() + geom_point(aes(x = TreeSpecies, y = Pase, colour = TreeSpecies)) + facet_grid(. ~ Site) + theme_bw() + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + xlab("Tree Species") + ylab(expression(Root~phosphatase~(mu~moles~pNP~g^{-1}))) + theme(legend.position = c(0.1,0.8))
 ```
 
@@ -201,11 +198,9 @@ Root phosphatase is influenced by both Site and Tree Species (p-value < 0.001), 
 # Root phosphatase and soil phosphorus
 ```{r Belowground data 2017}
 bg.2017 <- read.csv("~/Documents/LabStats/PR2_RemoteSensing/PR2_OrganicResinPase.csv", header = TRUE, stringsAsFactors = TRUE, na.strings = "NA")
-View(bg.2017)
 ```
 
-## Barplots
-```{r Site}
+```{r Site Summary}
 resinp.orgp.sum2 <- bg.2017 %>% 
   group_by(Site) %>% 
   summarise(
@@ -222,7 +217,7 @@ resinp.orgp.sum2 <- bg.2017 %>%
 View(resinp.orgp.sum2)
 ```
 
-### Resin P 
+## Resin P by Site
 ```{r}
 ggplot(data = resinp.orgp.sum2, aes(x = Site, y = resin_mean)) + geom_bar(stat = "identity", colour = "black") + geom_errorbar(aes(ymax=resin_mean+resin_se, ymin=resin_mean-resin_se), width = 0.2, size = 0.3) + theme_bw() + theme(
   panel.grid.major = element_blank(), 
@@ -230,7 +225,7 @@ ggplot(data = resinp.orgp.sum2, aes(x = Site, y = resin_mean)) + geom_bar(stat =
   axis.title.x = element_blank()) + ylab((expression(Mean~Resin~P~(mu~g~P~g^{-1})))) 
 ```
 
-### Organic P
+## Organic P by Site
 ```{r}
 ggplot(data = resinp.orgp.sum2, aes(x = Site, y = orgP_mean)) + geom_bar(stat = "identity", colour = "black") + geom_errorbar(aes(ymax=orgP_mean+orgP_se, ymin=orgP_mean-orgP_se), width = 0.2, size = 0.3) + theme_bw() + theme(
   panel.grid.major = element_blank(), 
@@ -238,33 +233,35 @@ ggplot(data = resinp.orgp.sum2, aes(x = Site, y = orgP_mean)) + geom_bar(stat = 
   axis.title.x = element_blank()) + ylab((expression(Mean~Organic~P~(mu~g~P~g^{-1}))))
 ```
 
-### Root phosphatase
+## Root phosphatase by Site
 ```{r}
-ggplot(data = resinp.orgp.sum2, aes(x = Site, y = pase_mean)) + geom_bar(stat = "identity", colour = "black") + geom_errorbar(aes(ymax=pase_mean+pase_se, ymin=pase_mean-pase_se), width = 0.2, size = 0.3)  + theme(
+ggplot(data = resinp.orgp.sum2, aes(x = Site, y = pase_mean)) + geom_bar(stat = "identity", colour = "black") + geom_errorbar(aes(ymax=pase_mean+pase_se, ymin=pase_mean-pase_se), width = 0.2, size = 0.3)  + theme_bw() + theme(
   panel.grid.major = element_blank(), 
   panel.grid.minor = element_blank(),
   axis.title.x = element_blank()) + ylab((expression(Mean~Root~Phosphatase~(mu~moles~P~g^{-1}))))
 ```
 
-## Scatterplots
+## Comparisons
 
-### Resin P x Organic P
-```{r Resin P x Organic P}
+### Resin P and Organic P
+```{r}
 ggplot(data =  bg.2017, aes(x = Total_OrganicP, y = ResinP, colour = Tree.Species, shape = Site)) + geom_point(size = 5.0) + theme_bw() + theme(
   panel.grid.major = element_blank(), 
   panel.grid.minor = element_blank()) + ylab((expression(Resin~P~({mu}~g~P~g^{-1})))) +  xlab((expression(Organic~P~(mu~g~P~g^{-1}))))
 ```
 
 ### Root phosphatase x Resin P
-```{r Root pase x resin P}
+```{r}
 ggplot(data =  bg.2017, aes(x = ResinP, y = Phosphatase, colour = Tree.Species, shape = Site)) + geom_point(size = 5.0) + theme_bw() + theme(
   panel.grid.major = element_blank(), 
   panel.grid.minor = element_blank()) + ylab((expression(Root~Phosphatase~({mu}~moles~P~g^{-1})))) +  xlab((expression(Resin~P~(mu~g~P~g^{-1}))))
 ```
 
 ### Root phosphatase x Organic P
-```{r Root pase x organic P}
+```{r}
 ggplot(data =  bg.2017, aes(x = Total_OrganicP, y = Phosphatase, colour = Tree.Species, shape = Site)) + geom_point(size = 5.0) + theme_bw() + theme(
   panel.grid.major = element_blank(), 
   panel.grid.minor = element_blank()) + ylab((expression(Root~Phosphatase~({mu}~moles~P~g^{-1})))) +  xlab((expression(Organic~P~(mu~g~P~g^{-1}))))
 ```
+
+# Microbial Analysis
