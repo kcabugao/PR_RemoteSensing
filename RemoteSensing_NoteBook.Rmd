@@ -250,6 +250,17 @@ ggplot(data =  bg.2017, aes(x = Total_OrganicP, y = ResinP, colour = Tree.Specie
   panel.grid.minor = element_blank()) + ylab((expression(Resin~P~({mu}~g~P~g^{-1})))) +  xlab((expression(Organic~P~(mu~g~P~g^{-1}))))
 ```
 
+### Ratio of Resin P:Organic P
+```{r}
+bg.2017 <- bg.2017 %>% 
+  mutate(Ratio_ResinOrganic = ResinP / Total_OrganicP)
+
+ggplot(data = bg.2017, aes(x = Site, y = Ratio_ResinOrganic, colour = Tree.Species)) + geom_point(position = position_dodge(0.5)) + scale_y_continuous(limits = c(0, 5)) + theme_bw() + theme(
+  panel.grid.major = element_blank(), 
+  panel.grid.minor = element_blank()) + ylab("ResinP : Organic P") + theme(legend.position = c(0.1, 0.8))
+  
+```
+
 ### Root phosphatase x Resin P
 ```{r}
 ggplot(data =  bg.2017, aes(x = ResinP, y = Phosphatase, colour = Tree.Species, shape = Site)) + geom_point(size = 5.0) + theme_bw() + theme(
@@ -265,3 +276,102 @@ ggplot(data =  bg.2017, aes(x = Total_OrganicP, y = Phosphatase, colour = Tree.S
 ```
 
 # Microbial Analysis
+```{r Microbial Dataset}
+microbial <- read.csv("~/Documents/LabStats/PR2_RemoteSensing/Microbial_SoilPase.csv", header = TRUE, stringsAsFactors = TRUE, na.strings = "NA")
+```
+
+## Summary Statistics
+```{r}
+library(plotrix)
+microbial.sum <- microbial %>%
+  group_by(Site, TreeSpecies) %>% 
+  summarise_at(c("TotalCarbon", "TotalNitrogen", "TC.TN", "NH4", "NO3", "PO4", "ExtC", "ExtN", "microbialC", "microbialN", "microbialP", "microbialCN", "TotalOrganicP", "ResinP", "Rootpase"), funs(mean, sd, std.error), na.rm = TRUE)
+View(microbial.sum)
+
+# Total Carbon
+ggplot(data = microbial.sum, aes(x = Site, y = TotalCarbon_mean)) + geom_boxplot() + geom_point(aes(x = Site, y = TotalCarbon_mean))
+
+# Total Nitrogen 
+ggplot(data = microbial.sum, aes(x = Site, y = TotalNitrogen_mean)) + geom_boxplot() + geom_point(aes(x = Site, y = TotalNitrogen_mean)) # see if root pase is higher with higher total N
+
+# TC/TN mean
+ggplot(data = microbial.sum, aes(x = Site, y = TC.TN_mean)) + geom_boxplot()
+
+# NH4 mean
+ggplot(data = microbial.sum, aes(x = Site, y = NH4_mean)) + geom_boxplot() + geom_point(aes(x = Site, y = NH4_mean))
+
+# NO3 mean
+ggplot(data = microbial.sum, aes(x = Site, y = NO3_mean)) + geom_boxplot() + geom_point(aes(x = Site, y = NO3_mean))
+
+# PO4 mean
+ggplot(data = microbial.sum, aes(x = Site, y = PO4_mean)) + geom_boxplot() + geom_point(aes(x = Site, y = PO4_mean)) # consistent with resin P
+
+# ExtC
+ggplot(data = microbial.sum, aes(x = Site, y = ExtC_mean)) + geom_boxplot() + geom_point(aes(x = Site, y = ExtC_mean))
+
+# ExtN
+ggplot(data = microbial.sum, aes(x = Site, y = ExtN_mean)) + geom_boxplot() + geom_point(aes(x = Site, y = ExtN_mean))
+
+# microbialC
+ggplot(data = microbial.sum, aes(x = Site, y = microbialC_mean)) + geom_boxplot() + geom_point(aes(x = Site, y = microbialC_mean)) # consistent with lower amounts of organic phosphorus at each site
+
+# microbial N
+ggplot(data = microbial.sum, aes(x = Site, y = microbialN_mean)) + geom_boxplot() + geom_point(aes(x = Site, y = microbialN_mean))
+
+# microbial P
+ggplot(data = microbial.sum, aes(x = Site, y = microbialP_mean)) + geom_boxplot() + geom_point(aes(x = Site, y = microbialP_mean))
+
+# microbial CN
+ggplot(data = microbial.sum, aes(x = Site, y = microbialCN_mean)) + geom_boxplot() + geom_point(aes(x = Site, y = microbialCN_mean))
+```
+
+## ANOVAs
+```{r}
+# Total Carbon
+tc.aov <- aov(TotalCarbon ~ Site + TreeSpecies + Site:TreeSpecies, data = microbial)
+summary(tc.aov) # Site
+
+# Total Nitrogen
+tn.aov <- aov(TotalNitrogen ~ Site + TreeSpecies + Site:TreeSpecies, data = microbial)
+summary(tn.aov) # none
+
+# TC/TN
+tctn.aov <- aov(TC.TN ~ Site + TreeSpecies + Site:TreeSpecies, data = microbial)
+summary(tctn.aov)
+
+TukeyHSD(tctn.aov)
+
+# Nitrogen and Phosphorus
+nh4.aov <- aov(NH4 ~ Site + TreeSpecies + Site:TreeSpecies, data = microbial)
+summary(nh4.aov) # none
+
+no3.aov <- aov(NO3 ~ Site + TreeSpecies + Site:TreeSpecies, data = microbial)
+summary(no3.aov) # significant
+
+TukeyHSD(no3.aov)
+
+po4.aov <- aov(PO4 ~ Site + TreeSpecies + Site:TreeSpecies, data = microbial)
+summary(po4.aov) # Site
+
+# Extractable C and N
+extc.aov <- aov(ExtC ~ Site + TreeSpecies + Site:TreeSpecies, data = microbial)
+summary(extc.aov) # site
+
+extn.aov <- aov(ExtN ~ Site + TreeSpecies + Site:TreeSpecies, data = microbial)
+summary(extn.aov) # tree species
+
+# Microbial 
+microC.aov <- aov(microbialC ~ Site + TreeSpecies + Site:TreeSpecies, data = microbial)
+summary(microC.aov) # Site
+
+microN.aov <- aov(microbialN ~ Site + TreeSpecies + Site:TreeSpecies, data = microbial)
+summary(microN.aov) # Site
+
+microP.aov <- aov(microbialP ~ Site + TreeSpecies + Site:TreeSpecies, data = microbial)
+summary(microP.aov) # Site
+
+microCN.aov <- aov(microbialCN ~ Site + TreeSpecies + Site:TreeSpecies, data = microbial)
+summary(microCN.aov)
+```
+
+Total carbon differs between EV1 and SB2 significantly (p< 0.05), with EV1 containing higher total carbon. Total nitrogen did not differ between site or tree species. TC/TN ratios were highly significant (p<0.01), with EV1 having higher TC/TN ratios. NO3 concentrations are significantly lower in EV1 than in SB2 with significant differences between tree species from each site. Similar to our results obtained using resin P, Bray 1 showed that PO4 was significantly (p <0.5) lower in EV1 than in SB2. Although extractable C was only significantly different between sites, extractable N was only significantly different between tree species(p<0.05), though with an interaction term (p<0.05). Microbial C,N, and P are significantly lower in EV1 than in SB2 (p<0.05), though microbial CN is not significantly different at both sites. (edit later for wording) 
