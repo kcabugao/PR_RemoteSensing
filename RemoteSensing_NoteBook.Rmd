@@ -375,3 +375,19 @@ summary(microCN.aov)
 ```
 
 Total carbon differs between EV1 and SB2 significantly (p< 0.05), with EV1 containing higher total carbon. Total nitrogen did not differ between site or tree species. TC/TN ratios were highly significant (p<0.01), with EV1 having higher TC/TN ratios. NO3 concentrations are significantly lower in EV1 than in SB2 with significant differences between tree species from each site. Similar to our results obtained using resin P, Bray 1 showed that PO4 was significantly (p <0.5) lower in EV1 than in SB2. Although extractable C was only significantly different between sites, extractable N was only significantly different between tree species(p<0.05), though with an interaction term (p<0.05). Microbial C,N, and P are significantly lower in EV1 than in SB2 (p<0.05), though microbial CN is not significantly different at both sites. (edit later for wording) 
+
+## Correlation Matrix
+```{r}
+library(corrplot)
+
+micro2 <- microbial[-c(3), ] # removing data with resin P NA
+microbial.cor <- cor(micro2[, c(4:18)]) # specifying which rows to create matrix from
+M <- corrplot(microbial.cor, method = "color") 
+
+res1 <- cor.mtest(microbial.cor, conf.level = 0.95)
+res2 <- cor.mtest(microbial.cor, conf.level = 0.99)
+
+# plot
+corrplot(M, p.mat = res1$p,insig = "label_sig", pch.col = "white", pch = "p<0.05", pch.cex = 0.5, order = "AOE")
+```
+
